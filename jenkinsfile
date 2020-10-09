@@ -8,8 +8,7 @@ pipeline {
     stages {
       stage('fetch_latest_code') {
         steps {
-          git credentialsId: 'ae5cb2988e28f0b04a76fa71a36be7497b21cb02', url: 'https://github.com/stortfordyaw/PaaS'
-        }
+         git credentialsId: 'Github', url: 'https://github.com/stortfordyaw/PaaS'
       }
 
       stage('TF Init&Plan') {
