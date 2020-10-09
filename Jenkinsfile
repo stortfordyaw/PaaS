@@ -1,6 +1,5 @@
 #!groovy
 
-pipeline {
     agent {
       node {
         label "master"
@@ -31,5 +30,3 @@ pipeline {
           sh 'terraform apply -input=false'
         }
       }
-    } 
-   }
