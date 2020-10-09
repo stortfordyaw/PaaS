@@ -1,5 +1,4 @@
 #!groovy
-pipeline{
     agent {
       node {
         label "master"
@@ -16,5 +15,4 @@ pipeline{
           sh 'terraform init'
           sh 'terraform plan'
         }      
-      }
       }
