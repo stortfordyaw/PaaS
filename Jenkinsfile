@@ -33,4 +33,4 @@ pipeline {
           sh 'terraform apply -input=false'
         }
       }
-    } 
+     }
