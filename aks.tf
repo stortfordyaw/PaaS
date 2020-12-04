@@ -1,5 +1,8 @@
+terraform {
+  backend "azurerm" {}
+}
 module "k8s" {
-	source = "../../cluster"
+	source = ".//cluster"
 	azs = ["1", "2", "3"]
 	dns_zone_id = "/subscriptions/bfc181d8-0a2b-483a-95eb-23944b2724f1/resourceGroups/RESOURCE_GROUP/providers/Microsoft.Network/dnszones/www.paas_2.com"
 	naming_convention = {"reg":"northeurope","env":"sbx","app":"paas","no":"01"}

@@ -1,0 +1,60 @@
+trigger:
+- master
+pool:
+  vmImage: 'ubuntu-latest'
+steps:
+- task: TerraformTaskV1@0
+  displayName: Terra Init
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    backendServiceArm: 'FIS Global - CIO - Sandbox (bfc181d8-0a2b-483a-95eb-23944b2724f1)'
+    backendAzureRmResourceGroupName: 'lc5622315-NorthEurope-01'
+    backendAzureRmStorageAccountName: 'terrapipeline'
+    backendAzureRmContainerName: 'terraform'
+    backendAzureRmKey: 'tf/terraform.tfstate'
+- task: TerraformTaskV1@0
+  displayName: Terraform Destroy
+  inputs:
+    provider: 'azurerm'
+    command: 'destroy'
+    environmentServiceNameAzureRM: 'FIS Global - CIO - Sandbox (bfc181d8-0a2b-483a-95eb-23944b2724f1)'
+- task: TerraformTaskV1@0
+  displayName: Terraform Plan
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    commandOptions: '-out=tfplan'
+    environmentServiceNameAzureRM: 'FIS Global - CIO - Sandbox (bfc181d8-0a2b-483a-95eb-23944b2724f1)'
+- task: TerraformTaskV1@0
+  displayName: Terra Apply
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    environmentServiceNameAzureRM: 'FIS Global - CIO - Sandbox (bfc181d8-0a2b-483a-95eb-23944b2724f1)'
+- task: HelmInstaller@0
+  inputs:
+    helmVersion: '2.14.1'
+    installKubectl: true
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'FIS Global - CIO - Sandbox (bfc181d8-0a2b-483a-95eb-23944b2724f1)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az aks get-credentials --resource-group lc5622315-NorthEurope-01 --name aks-northeurope-sbx-paas-01 --admin
+      kubectl create namespace ingress-basic
+            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+            helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-basic --set controller.replicaCount=2 --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux --set controller.admissionWebhooks.patch.nodeSelector."beta\.kubernetes\.io/os"=linux
+      kubectl apply -f aks-helloworld-one.yaml --namespace ingress-basic
+      kubectl apply -f aks-helloworld-two.yml --namespace ingress-basic
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'FIS Global - CIO - Sandbox (bfc181d8-0a2b-483a-95eb-23944b2724f1)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az aks get-credentials --resource-group lc5622315-NorthEurope-01 --name aks-northeurope-sbx-paas-01 --admin
+                kubectl apply -f hello-world-ingress.yml
+  
